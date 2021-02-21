@@ -1,5 +1,5 @@
 {
-  "name": "eslint-plugin-autoimport",
+  "name": "eslint-plugin-autoimport-declarative",
   "version": "1.0.0",
   "description": "Automatically imports based on declarative linter",
   "author": "Jo Gottfreund",
