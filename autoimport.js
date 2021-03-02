@@ -125,7 +125,7 @@ module.exports = {
                       }
                       if (exported.name === undefinedIndentifier) {
                         foundModule = packageName;
-                        isNotDefaultExport = exported.isDefault;
+                        isNotDefaultExport = !exported.isDefault;
                         break;
                       }
                     }
