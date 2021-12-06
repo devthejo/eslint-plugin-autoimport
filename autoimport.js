@@ -4,7 +4,6 @@
 /* inspired by https://github.com/kriszyp/eslint-plugin-auto-import/ */
 
 const pathModule = require("path");
-const fs = require("fs");
 
 function isStaticRequire(node) {
   return (
@@ -54,29 +53,26 @@ module.exports = {
     var options = context.options[0];
     var considerTypeOf = (options && options.typeof === true) || false;
     const dependencies = new Set(); // keep track of dependencies
-    let lastNode; // keep track of the last node to report on
 
     return {
       ImportDeclaration(node) {
         dependencies.add(node.source.value);
-        lastNode = node.source;
       },
 
-      MemberExpression: function (node) {},
+      MemberExpression: function (node) { },
 
       CallExpression(node) {
         if (isStaticRequire(node)) {
           const [requirePath] = node.arguments;
           dependencies.add(requirePath.value);
-          lastNode = node;
         }
       },
       "Program:exit": function (/* node */) {
         var globalScope = context.getScope();
         var options = context.options[0];
-        //                console.log(context.eslint)
+        //  console.log(context.eslint)
         var fixed = {};
-        //                console.log(globalScope.block.body[0].specifiers[0])
+        //  console.log(globalScope.block.body[0].specifiers[0])
         globalScope.through.forEach(function (ref) {
           var identifier = ref.identifier;
 
@@ -97,8 +93,6 @@ module.exports = {
               }
               fixed[undefinedIndentifier] = true;
               var filename = context.getFilename();
-              var path = pathModule.dirname(filename);
-              var lastPath;
               var foundModule;
               var isNotDefaultExport;
 
@@ -110,14 +104,14 @@ module.exports = {
                   if (packageRef === undefinedIndentifier) {
                     foundModule = packageName;
                   } else {
-                    if (typeof pckg === "string"){
+                    if (typeof pckg === "string") {
                       pckg = [{
                         name: pckg,
                         isDefault: true
                       }]
                     }
                     for (var exported of pckg) {
-                      if (typeof exported === "string"){
+                      if (typeof exported === "string") {
                         exported = {
                           name: exported,
                           isDefault: false,
@@ -146,10 +140,17 @@ module.exports = {
                   importDeclaration = node;
                   if (node.source.value === foundModule) {
                     if (isNotDefaultExport) {
+                      let insertCode
+                      // process.exit(1)
+                      if (node.specifiers.some(({ type }) => type === "ImportSpecifier")) {
+                        insertCode = ", " + undefinedIndentifier
+                      } else {
+                        insertCode = ", {" + undefinedIndentifier + "}"
+                      }
                       // add to the named imports of an existing import declaration
                       return fixer.insertTextAfter(
                         node.specifiers[node.specifiers.length - 1],
-                        ", " + undefinedIndentifier
+                        insertCode
                       );
                     } else {
                       console.log(foundModule, "already imported");
